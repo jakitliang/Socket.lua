@@ -6,6 +6,7 @@
 // @license MIT
 
 #include <cmath>
+#include <cstring>
 #include "socket.h"
 #include "socket_posix.h"
 
@@ -19,10 +20,18 @@ extern "C" {
 #include <sys/errno.h>
 }
 
-#define SOCKET_INVALID (-1)
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
 
 SocketImpl * SocketCast(Socket *socket) {
     return reinterpret_cast<SocketImpl *>(socket->impl);
+}
+
+void Socket::Init(Socket * socket) {
+    auto impl = SocketCast(socket);
+    memset(socket, 0, sizeof(Socket));
+    impl->fd = INVALID_SOCKET;
 }
 
 int Socket::TCP(Socket *socket) {
@@ -35,6 +44,12 @@ int Socket::UDP(Socket *socket) {
     auto impl = SocketCast(socket);
     impl->fd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     return impl->fd;
+}
+
+void Socket::GetAddress(Socket * socket, char * address, int len, UInt16 * port) {
+    auto impl = SocketCast(socket);
+    inet_ntop(impl->addr.sin_family, &impl->addr, address, len);
+    (*port) = htons(impl->addr.sin_port);
 }
 
 int Socket::Connect(Socket * socket, const char * host, UInt64 port) {
@@ -129,8 +144,13 @@ int Socket::Shutdown(Socket *socket, int how) {
 
 int Socket::Close(Socket *socket) {
     auto impl = SocketCast(socket);
-    int fd = impl->fd;
-    return close(fd);
+    int ret = 0;
+
+    if (impl->fd >= 0) {
+        ret = close(impl->fd);
+    }
+
+    return ret;
 }
 
 int Socket::Select(int max, fd_set * rSet, fd_set * wSet, fd_set * eSet, double timeout) {
@@ -161,6 +181,11 @@ int Socket::SetBlock(Socket *socket) {
 
 int Socket::GetError() {
     return errno;
+}
+
+int Socket::IsClosed(Socket *socket) {
+    auto impl = SocketCast(socket);
+    return impl->fd >= 0 ? 0 : 1;
 }
 
 int TableToFDSet(lua_State *L, int idx, fd_set *s) {

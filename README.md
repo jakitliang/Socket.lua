@@ -37,24 +37,30 @@ It is hard to change the behavior of a large library.
 
 ## APIs & Usage
 
-| Name                                          | Desc                                 | Return                           |
-|-----------------------------------------------|--------------------------------------|----------------------------------|
-| Socket.errno                                  | Error numbers<br/>(Class method)     | table                            |
-| Socket.TCP                                    | Create TCP Socket<br/>(Class method) | Socket                           |
-| Socket.UDP                                    | Create UDP Socket<br/>(Class method) | Socket                           |
-| Socket:connect(ip, port)                      | Connect to remote                    | number                           |
-| Socket:bind(ip, port)                         | Bind address                         | number                           |
-| Socket:listen(size)                           | Listen                               | number                           |
-| Socket:receive(size)                          | Receive data                         | str, number (err)                |
-| Socket:receiveNow(size)                       | Receive data (NonBlock)              | str, number (err)                |
-| Socket:send(data, size)                       | Send data                            | number (Sent count),<br/>number (err) |
-| Socket:sendNow(data, size)                    | Send data (NonBlock)                 | number (Sent count),<br/>number (err) |
-| Socket:close()                                | Close socket                         | number (err) |
+| Name                                          | Desc                                 | Return                                     |
+|-----------------------------------------------|--------------------------------------|--------------------------------------------|
+| Socket.errno                                  | Error numbers<br/>(Class method)     | table                                      |
+| Socket.TCP                                    | Create TCP Socket<br/>(Class method) | Socket                                     |
+| Socket.UDP                                    | Create UDP Socket<br/>(Class method) | Socket                                     |
+| Socket:connect(ip, port)                      | Connect to remote                    | number                                     |
+| Socket:bind(ip, port)                         | Bind address                         | number                                     |
+| Socket:listen(size)                           | Listen                               | number                                     |
+| Socket:receive(size)                          | Receive data                         | string, number (err)                       |
+| Socket:receiveNow(size)                       | Receive data (NonBlock)              | string, number (err)                       |
+| Socket:send(data, size)                       | Send data                            | number (Sent count),<br/>number (err)      |
+| Socket:sendNow(data, size)                    | Send data (NonBlock)                 | number (Sent count),<br/>number (err)      |
+| Socket:close()                                | Close socket                         | number (err)                               |
+| Socket:isClosed()                             | Check socket available               | boolean                                    |
 | Socket:Select(readArray, writeArray, timeout) | Select sockets<br/>(Class method)    | readableArray, writableArray, number (err) |
+| Socket:getAddress()                           | Get socket address                   | string(host), number(port)                 |
+| Socket:sha1(string)                           | SHA1 crypto                          | string                                     |
+| Socket:sha1hex(string)                        | SHA1 hex crypto                      | string                                     |
+| Socket:base64encode(string)                   | Base64 encode                        | string                                     |
+| Socket:base64decode(string)                   | Base64 decode                        | string                                     |
 
 ## Copyright
 
-> Use love to generate electricity by Jakit
+> Generate electricity by Jakit with love.
 
 This module is MIT-Licensed.
 

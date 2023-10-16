@@ -16,8 +16,10 @@
 static WSADATA wsaData;
 static WORD wVersionRequested = MAKEWORD(2, 2);
 static bool wsaStartUp = false;
+static SOCKET defaultSocket;
 
 void onExit() {
+    closesocket(defaultSocket);
     WSACleanup();
 }
 
@@ -26,6 +28,7 @@ bool checkStart() {
         int err = WSAStartup(wVersionRequested, &wsaData);
         if (err != 0) return false;
         atexit(onExit);
+        defaultSocket = socket(AF_UNSPEC, SOCK_RAW, IPPROTO_ICMP);
         wsaStartUp = true;
     }
 
@@ -34,6 +37,12 @@ bool checkStart() {
 
 SocketImpl * SocketCast(Socket *socket) {
     return reinterpret_cast<SocketImpl *>(socket->impl);
+}
+
+void Socket::Init(Socket * socket) {
+    auto impl = SocketCast(socket);
+    memset(socket, 0, sizeof(Socket));
+    impl->fd = INVALID_SOCKET;
 }
 
 int Socket::TCP(Socket *socket) {
@@ -62,6 +71,12 @@ int Socket::UDP(Socket *socket) {
     }
 
     return impl->fd;
+}
+
+void Socket::GetAddress(Socket * socket, char * address, int len, UInt16 * port) {
+    auto impl = SocketCast(socket);
+    inet_ntop(impl->addr.sin_family, &impl->addr.sin_addr, address, len);
+    (*port) = htons(impl->addr.sin_port);
 }
 
 int Socket::Connect(Socket * socket, const char * host, UInt64 port) {
@@ -156,15 +171,26 @@ int Socket::Shutdown(Socket *socket, int how) {
 
 int Socket::Close(Socket *socket) {
     auto impl = SocketCast(socket);
-    return closesocket(impl->fd);
+    int ret = 0;
+
+    if (impl->fd != INVALID_SOCKET) {
+        ret = closesocket(impl->fd);
+        impl->fd = INVALID_SOCKET;
+    }
+
+    return ret;
 }
 
 int Socket::Select(int max, fd_set * rSet, fd_set * wSet, fd_set * eSet, double timeout) {
-    timeval tv{};
+    timeval tv{0, 0};
+    checkStart();
 
     tv.tv_sec = floor(timeout);
     tv.tv_usec = (timeout - floor(timeout)) * 1000000;
-    return select(max, rSet, wSet, eSet, &tv);
+    FD_SET(defaultSocket, rSet);
+    int ret = select(max, rSet, wSet, eSet, &tv);
+    FD_CLR(defaultSocket, rSet);
+    return ret;
 }
 
 int Socket::SetNonBlock(Socket *socket) {
@@ -187,8 +213,13 @@ int Socket::GetError() {
     return ErrorConvert(WSAGetLastError());
 }
 
+int Socket::IsClosed(Socket *socket) {
+    auto impl = SocketCast(socket);
+    return impl->fd == INVALID_SOCKET ? 0 : 1;
+}
+
 int TableToFDSet(lua_State *L, int idx, fd_set *s) {
-    int maxfd = -1;
+    SOCKET maxfd = 0;
 
     auto n = lua_objlen(L, idx);
     for (int i = 1; i <= n; ++i) {
@@ -197,9 +228,11 @@ int TableToFDSet(lua_State *L, int idx, fd_set *s) {
         if (lua_isuserdata(L, -1)) {
             auto socket = static_cast<Socket *>(lua_touserdata(L, -1));
             auto impl = SocketCast(socket);
-            if (impl->fd >= 0) {
+            if (impl->fd != INVALID_SOCKET) {
                 FD_SET(impl->fd, s);
-                if (impl->fd > maxfd) maxfd = impl->fd;
+                if (impl->fd > maxfd) {
+                    maxfd = impl->fd;
+                }
             }
         }
 
@@ -217,6 +250,7 @@ int PushSocketForFD(lua_State *L, int idx, int fd) {
         if (lua_isuserdata(L, -1)) {
             auto socket = static_cast<Socket *>(lua_touserdata(L, -1));
             auto impl = SocketCast(socket);
+
             if (impl->fd == fd) {
                 return 1;
             }

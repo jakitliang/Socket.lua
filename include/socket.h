@@ -20,8 +20,12 @@ struct Socket {
     Byte isNonblock;
     Byte impl[128];
 
+    static void Init(Socket * socket);
+
     static int TCP(Socket * socket);
     static int UDP(Socket * socket);
+
+    static void GetAddress(Socket * socket, char * address, int len, UInt16 * port);
 
     static int Connect(Socket * socket, const char * host, UInt64 port);
     static int ConnectNow(Socket * socket, const char * host, UInt64 port);
@@ -50,6 +54,8 @@ struct Socket {
     static int Select(int max, fd_set * rSet, fd_set * wSet, fd_set * eSet, double timeout);
 
     static int GetError();
+
+    static int IsClosed(Socket *socket);
 };
 
 int TableToFDSet(lua_State *L, int idx, fd_set *s);

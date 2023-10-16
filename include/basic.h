@@ -21,10 +21,13 @@ typedef Int64 Integer;
 typedef UInt64 UInteger;
 typedef UInt64 Size;
 typedef Int64 SSize;
-#ifdef CHOCO_64
+
+#if _WIN64
 typedef unsigned long long Pointer;
-#else
+#elif _WIN32
 typedef unsigned int Pointer;
+#else
+typedef unsigned long long Pointer;
 #endif
 
 #ifdef _WIN32

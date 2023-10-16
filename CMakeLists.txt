@@ -4,7 +4,7 @@
 # @date 2023-10-01
 # @license MIT
 
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.15)
 project(socket_lua)
 
 set(CMAKE_CXX_STANDARD 11)
