@@ -16,7 +16,6 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(MY_PRODUCT_NUMBER 0)
     set(MY_PRODUCT_VERSION 1)
     set(MY_BUILD_NUMBER 5)
-    set(CMAKE_CXX_FLAGS "/O2 ${CMAKE_CXX_FLAGS}")
 
     configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in
@@ -28,7 +27,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     find_library(WIN_SOCK_LIB ws2_32)
     add_library(socket SHARED
             socket.cpp socket_mswin.cpp socket_mswin.h
-            error_number_posix.cpp
+            error_number_mswin.cpp
             base64.c sha1.c
             ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
     target_link_libraries(socket ${LUA_LIB} ${WIN_SOCK_LIB})

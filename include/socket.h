@@ -16,8 +16,13 @@
 #include <sys/select.h>
 #endif
 
+
+
 struct Socket {
     Byte isNonblock;
+    Int8 isShutdown;
+    Byte * buffer;
+    UInt32 bufferSize;
     Byte impl[128];
 
     static void Init(Socket * socket);
